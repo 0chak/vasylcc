@@ -36,9 +36,6 @@ const count = String(projects.length).padStart(2, '0');
                 <span class="row-top">
                   <span class="idx mono" aria-hidden="true">{p.index}</span>
                   <span class="badges">
-                    {p.isCompany && (
-                      <span class="marker mono">★ LA MIA AZIENDA</span>
-                    )}
                     {isLive ? (
                       <span class="badge badge-live mono">● LIVE</span>
                     ) : (
@@ -55,8 +52,12 @@ const count = String(projects.length).padStart(2, '0');
                 </span>
 
                 <span class="meta mono">
-                  <span class="meta-tag">{p.tag}</span>
-                  <span class="dot" aria-hidden="true">·</span>
+                  {p.tag && (
+                    <>
+                      <span class="meta-tag">{p.tag}</span>
+                      <span class="dot" aria-hidden="true">·</span>
+                    </>
+                  )}
                   <span class="meta-year">{p.year}</span>
                 </span>
 

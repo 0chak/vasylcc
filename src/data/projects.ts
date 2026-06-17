@@ -20,7 +20,7 @@ export const projects: Project[] = [
     url: 'https://hydralabs.it',
     status: 'live',
     year: '2022 →',
-    tag: 'La mia software house',
+    tag: '',
     description:
       'Software house che fondo e dirigo. Sviluppo web su misura, gestionali cloud ed e-commerce ad alte prestazioni — dall’analisi dei requisiti alla messa in produzione, su infrastruttura gestita internamente.',
     stack: ['Laravel', 'VueJS', 'TailwindCSS', 'Docker', 'Linux'],
