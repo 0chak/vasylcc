@@ -1,0 +1,200 @@
+---
+import '../styles/global.css';
+import { site } from '../data/site';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const {
+  title = `${site.name} — ${site.role}`,
+  description = site.tagline,
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="generator" content={Astro.generator} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#020b12" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <a class="skip" href="#home">Salta al contenuto</a>
+
+    <slot />
+
+    <!-- visual FX -->
+    <div class="fx-vignette" aria-hidden="true"></div>
+    <div class="fx-overlay" aria-hidden="true"></div>
+    <div class="fx-frame" aria-hidden="true"></div>
+
+    <!-- help overlay -->
+    <div class="help" id="help-overlay" role="dialog" aria-modal="true" aria-label="Aiuto comandi">
+      <div class="help-panel box">
+        <h2 class="h-section">// Comandi</h2>
+        <div class="help-row"><span>Muovi selezione</span><span>W A S D · ↑ ↓ ← → · H J K L</span></div>
+        <div class="help-row"><span>Apri / attiva</span><span>Enter · Spazio</span></div>
+        <div class="help-row"><span>Vai a sezione</span><span>1 · 2 · 3 · 4</span></div>
+        <div class="help-row"><span>Torna su</span><span>G</span></div>
+        <div class="help-row"><span>Deseleziona / chiudi</span><span>Esc</span></div>
+        <div class="help-row"><span>Questo pannello</span><span>?</span></div>
+        <p class="mono-label" style="margin-top:1.4rem;">
+          Premi <kbd style="background:var(--g2);color:var(--b3);padding:.1em .5em;border-radius:2px;">Esc</kbd> per chiudere ·
+          <button data-help-close type="button" style="all:unset;cursor:pointer;color:var(--g1);text-decoration:underline;">chiudi</button>
+        </p>
+      </div>
+    </div>
+
+    <script>
+      // cursor → CSS vars (drives the radial glow on <body>)
+      (() => {
+        let raf = 0;
+        let tx = innerWidth / 2;
+        let ty = innerHeight / 2;
+        const root = document.documentElement.style;
+        addEventListener('pointermove', (e) => {
+          tx = e.clientX;
+          ty = e.clientY;
+          if (!raf) {
+            raf = requestAnimationFrame(() => {
+              root.setProperty('--mx', tx + 'px');
+              root.setProperty('--my', ty + 'px');
+              root.setProperty('--mxf', (tx / innerWidth).toFixed(4));
+              root.setProperty('--myf', (ty / innerHeight).toFixed(4));
+              raf = 0;
+            });
+          }
+        }, { passive: true });
+      })();
+    </script>
+    <script>
+      // Toggle body.is-scrolling while the page is moving — gates glitch FX.
+      (() => {
+        let t = 0;
+        addEventListener(
+          'scroll',
+          () => {
+            document.body.classList.add('is-scrolling');
+            clearTimeout(t);
+            t = window.setTimeout(
+              () => document.body.classList.remove('is-scrolling'),
+              160
+            );
+          },
+          { passive: true }
+        );
+      })();
+    </script>
+    <script>
+      // Inertial smooth scrolling (lerp) + smooth anchor jumps.
+      (() => {
+        const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const coarse = matchMedia('(pointer: coarse)').matches;
+        const inertial = !reduce && !coarse;
+
+        const maxScroll = () =>
+          (document.documentElement.scrollHeight || 0) - window.innerHeight;
+
+        let target = window.scrollY;
+        let current = target;
+        let raf = 0;
+        let animating = false; // we drive the scroll → don't resync target
+
+        const loop = () => {
+          current += (target - current) * 0.12;
+          if (Math.abs(target - current) < 0.4) {
+            current = target;
+            window.scrollTo(0, current);
+            raf = 0;
+            animating = false;
+            return;
+          }
+          window.scrollTo(0, current);
+          raf = requestAnimationFrame(loop);
+        };
+
+        const goTo = (y) => {
+          target = Math.max(0, Math.min(maxScroll(), y));
+          animating = true;
+          if (!raf) raf = requestAnimationFrame(loop);
+        };
+
+        if (inertial) {
+          addEventListener(
+            'wheel',
+            (e) => {
+              if (e.ctrlKey) return; // pinch-zoom
+              e.preventDefault();
+              goTo(target + e.deltaY);
+            },
+            { passive: false }
+          );
+
+          // External scroll (keyboard nav, drag): follow it.
+          addEventListener(
+            'scroll',
+            () => {
+              if (!animating) {
+                target = current = window.scrollY;
+              }
+            },
+            { passive: true }
+          );
+        }
+
+        // Smooth scroll for in-page anchor clicks (#home, #lavori, …).
+        document.addEventListener('click', (e) => {
+          if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey) {
+            return;
+          }
+          const a = (e.target instanceof Element
+            ? e.target.closest('a[href^="#"]')
+            : null);
+          if (!a) return;
+          const hash = a.getAttribute('href');
+          if (!hash || hash === '#') return;
+          let el = null;
+          try {
+            el = document.querySelector(hash);
+          } catch {
+            return;
+          }
+          if (!el) return;
+          e.preventDefault();
+          const y = el.getBoundingClientRect().top + window.scrollY;
+          if (inertial) {
+            goTo(y);
+          } else {
+            el.scrollIntoView({
+              behavior: reduce ? 'auto' : 'smooth',
+              block: 'start',
+            });
+          }
+          history.pushState(null, '', hash);
+        });
+      })();
+    </script>
+    <script>
+      import '../scripts/keynav.ts';
+    </script>
+  </body>
+</html>

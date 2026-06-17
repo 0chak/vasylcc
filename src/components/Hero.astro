@@ -1,0 +1,467 @@
+---
+import { site } from '../data/site';
+
+// Wordmark split into two terminal lines.
+const line1 = 'VASYL';
+const line2 = 'HALUSHCHAK';
+const statusLabel = site.available
+  ? 'Disponibile per nuovi progetti'
+  : 'Al momento non disponibile';
+---
+
+<div class="wrap hero" data-hero>
+  <!-- status / kicker row -->
+  <div class="hero-top">
+    <span class="kicker hero-status" data-available={String(site.available)}>
+      <span class="dot" aria-hidden="true"></span>{statusLabel}
+    </span>
+    <span class="hero-meta-tag mono-label">Portfolio<span class="sep">//</span>2026</span>
+  </div>
+
+  <!-- brutalist wordmark -->
+  <h1 class="h-display wordmark" data-wordmark aria-label={site.name}>
+    <span class="wm-line" data-line="1">
+      <span class="brk" aria-hidden="true">[</span><span
+        class="glitch"
+        data-text={line1}>{line1}</span><span class="brk" aria-hidden="true">]</span>
+    </span>
+    <span class="wm-line wm-line-2" data-line="2">
+      <span class="brk" aria-hidden="true">[</span><span
+        class="glitch"
+        data-text={line2}>{line2}</span><span class="brk" aria-hidden="true">]</span>
+    </span>
+  </h1>
+
+  <!-- role -->
+  <p class="role mono-label">{site.roleLong}</p>
+
+  <!-- tagline w/ decode animation -->
+  <p class="tagline" data-tagline data-text={site.tagline}>{site.tagline}</p>
+
+  <!-- terminal meta row -->
+  <div class="meta-row">
+    <span class="prompt"><span class="prompt-user">vasyl@hydralabs.it</span><span
+        class="prompt-sep"
+      >:</span><span class="prompt-path">~</span><span class="prompt-glyph">$</span><span
+        class="blink caret"
+        aria-hidden="true">_</span></span>
+    <span class="meta-sep" aria-hidden="true">·</span>
+    <span class="loc">{site.location}</span>
+  </div>
+
+  <!-- stack chips -->
+  <ul class="stack" aria-label="Stack tecnologico">
+    {site.stack.map((tech) => (
+      <li class="chip"><span class="chip-brk" aria-hidden="true">[</span>{tech}<span
+          class="chip-brk"
+          aria-hidden="true">]</span></li>
+    ))}
+  </ul>
+
+  <!-- CTAs -->
+  <div class="cta-row">
+    <a href="#lavori" data-nav class="btn btn-primary">
+      <span aria-hidden="true">→</span> Vedi i lavori
+    </a>
+    <a href="#contatti" data-nav class="btn">
+      <span aria-hidden="true">→</span> Contattami
+    </a>
+  </div>
+
+  <!-- scroll hint -->
+  <div class="scroll-hint" aria-hidden="true">
+    <span>scroll</span><span class="arrow">↓</span><span class="dim">premi</span><kbd>2</kbd>
+  </div>
+</div>
+
+<style>
+  .hero {
+    /* offset the section's own padding-block so we still fill the screen */
+    min-height: calc(100svh - clamp(4rem, 10vw, 8rem));
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: clamp(1.1rem, 2.4vw, 1.9rem);
+    padding-block: clamp(1rem, 4vh, 3rem);
+  }
+
+  /* ---- top status row ---- */
+  .hero-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem 1.4rem;
+  }
+  .hero-status .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--g1);
+    box-shadow: 0 0 0 0 rgba(14, 219, 113, 0.6);
+    animation: pulse 2s ease-out infinite;
+  }
+  .hero-status[data-available='false'] .dot {
+    background: var(--mute);
+    animation: none;
+  }
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(14, 219, 113, 0.55); }
+    70% { box-shadow: 0 0 0 9px rgba(14, 219, 113, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(14, 219, 113, 0); }
+  }
+  .hero-meta-tag {
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--mute);
+    font-size: 0.68rem;
+  }
+  .hero-meta-tag .sep { color: var(--g-dim); margin-inline: 0.5ch; }
+
+  /* ---- wordmark ---- */
+  .wordmark {
+    display: flex;
+    flex-direction: column;
+    line-height: 0.9;
+    letter-spacing: -0.02em;
+    color: var(--fg);
+    /* mouse-parallax target vars (set by script, default neutral) */
+    --wm-x: 0px;
+    --wm-y: 0px;
+    --wm-rot: 0deg;
+    transform: translate3d(var(--wm-x), var(--wm-y), 0) rotateZ(var(--wm-rot));
+    transform-origin: left center;
+    transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
+    will-change: transform;
+  }
+  .wm-line { display: inline-flex; align-items: baseline; }
+  .wm-line-2 { margin-left: clamp(1.5rem, 7vw, 6rem); }
+
+  .brk {
+    color: var(--g2);
+    opacity: 0.5;
+    font-weight: 400;
+    transform: translateY(-0.04em);
+    margin-inline: 0.06em;
+  }
+  .wm-line:hover .brk { opacity: 1; }
+
+  /* RGB-split glitch */
+  .glitch {
+    position: relative;
+    display: inline-block;
+    color: var(--fg);
+  }
+  .glitch::before,
+  .glitch::after {
+    content: attr(data-text);
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0;
+    clip-path: inset(0 0 0 0);
+  }
+  .glitch::before { color: var(--g1); }
+  .glitch::after { color: #ff3d7f; }
+
+  /* one-shot RGB split on load */
+  [data-hero].is-ready .glitch::before {
+    animation: split-g 0.9s ease-out 0.05s 1 both;
+  }
+  [data-hero].is-ready .glitch::after {
+    animation: split-r 0.9s ease-out 0.05s 1 both;
+  }
+  @keyframes split-g {
+    0% { opacity: 0.9; transform: translate(-0.12em, 0.04em); }
+    60% { opacity: 0.5; transform: translate(-0.03em, 0.01em); }
+    100% { opacity: 0; transform: translate(0, 0); }
+  }
+  @keyframes split-r {
+    0% { opacity: 0.9; transform: translate(0.12em, -0.04em); }
+    60% { opacity: 0.5; transform: translate(0.03em, -0.01em); }
+    100% { opacity: 0; transform: translate(0, 0); }
+  }
+
+  /* glitch on hover — continuous flicker */
+  .wm-line:hover .glitch::before { animation: glitch-g 0.4s steps(2) infinite; opacity: 0.85; }
+  .wm-line:hover .glitch::after { animation: glitch-r 0.4s steps(2) infinite; opacity: 0.85; }
+  @keyframes glitch-g {
+    0% { transform: translate(-0.04em, 0.02em); clip-path: inset(0 0 60% 0); }
+    50% { transform: translate(-0.08em, -0.02em); clip-path: inset(40% 0 20% 0); }
+    100% { transform: translate(-0.02em, 0.01em); clip-path: inset(70% 0 0 0); }
+  }
+  @keyframes glitch-r {
+    0% { transform: translate(0.04em, -0.02em); clip-path: inset(60% 0 0 0); }
+    50% { transform: translate(0.08em, 0.02em); clip-path: inset(20% 0 40% 0); }
+    100% { transform: translate(0.02em, -0.01em); clip-path: inset(0 0 70% 0); }
+  }
+
+  /* entrance: lines slide/clip in */
+  .wm-line { opacity: 0; transform: translateX(-0.3em); }
+  [data-hero].is-ready .wm-line { animation: wm-in 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+  [data-hero].is-ready .wm-line-2 { animation-delay: 0.1s; }
+  @keyframes wm-in {
+    from { opacity: 0; transform: translateX(-0.3em); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  /* ---- role ---- */
+  .role {
+    color: var(--g2);
+    letter-spacing: 0.06em;
+    font-size: clamp(0.82rem, 1.6vw, 1rem);
+    max-width: 60ch;
+  }
+
+  /* ---- tagline ---- */
+  .tagline {
+    color: var(--fg);
+    font-size: clamp(1rem, 2.1vw, 1.35rem);
+    line-height: 1.45;
+    max-width: 52ch;
+    margin: 0;
+    text-wrap: balance;
+  }
+  .tagline[data-decoding] { color: var(--g2); }
+
+  /* ---- meta terminal row ---- */
+  .meta-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.4rem 0.8ch;
+    font-size: 0.82rem;
+    color: var(--fg-soft);
+  }
+  .prompt { color: var(--mute); }
+  .prompt-user { color: var(--g2); }
+  .prompt-sep { color: var(--mute); }
+  .prompt-path { color: var(--b1); filter: brightness(1.8); }
+  .prompt-glyph { color: var(--g1); margin-left: 0.2ch; }
+  .caret { color: var(--g1); margin-left: 0.1ch; font-weight: 700; }
+  .meta-sep { color: var(--mute); }
+  .loc { color: var(--fg-soft); letter-spacing: 0.02em; }
+
+  /* ---- stack chips ---- */
+  .stack {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 0.7rem;
+  }
+  .chip {
+    font-size: 0.74rem;
+    letter-spacing: 0.04em;
+    color: var(--fg-soft);
+    border: 1px solid var(--line);
+    padding: 0.3em 0.7em;
+    background: rgba(8, 27, 47, 0.4);
+    transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+  }
+  .chip:hover {
+    color: var(--b3);
+    background: var(--g2);
+    border-color: var(--g2);
+  }
+  .chip-brk { color: var(--g-dim); margin-inline: 0.15ch; }
+  .chip:hover .chip-brk { color: var(--b3); }
+
+  /* ---- CTAs ---- */
+  .cta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem 1rem;
+    margin-top: 0.4rem;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5ch;
+    font-family: var(--mono);
+    font-size: 0.84rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 0.7em 1.3em;
+    border: 1px solid var(--line-strong);
+    color: var(--fg);
+    background: transparent;
+    cursor: pointer;
+    /* note: [data-nav] already provides a transform/box-shadow transition */
+    transition: color 0.14s ease, background 0.14s ease, border-color 0.14s ease;
+  }
+  .btn span[aria-hidden] { color: var(--g1); transition: color 0.14s ease; }
+  .btn:hover,
+  .btn:focus-visible {
+    color: var(--b3);
+    background: var(--g1);
+    border-color: var(--g1);
+  }
+  .btn:hover span[aria-hidden],
+  .btn:focus-visible span[aria-hidden] { color: var(--b3); }
+  .btn:active { background: var(--g2); border-color: var(--g2); }
+
+  .btn-primary {
+    border-color: var(--g2);
+    background: rgba(2, 247, 125, 0.06);
+  }
+
+  /* keyboard-nav active state already shows green glow + corner brackets;
+     mirror the inverted fill so it reads as "selected" */
+  .btn[data-nav].is-active {
+    color: var(--b3);
+    background: var(--g1);
+    border-color: var(--g1);
+  }
+  .btn[data-nav].is-active span[aria-hidden] { color: var(--b3); }
+
+  /* ---- scroll hint ---- */
+  .scroll-hint {
+    display: flex;
+    align-items: center;
+    gap: 0.7ch;
+    margin-top: auto;
+    padding-top: clamp(1rem, 3vh, 2.4rem);
+    font-size: 0.66rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--mute);
+  }
+  .scroll-hint .arrow {
+    color: var(--g2);
+    animation: bob 1.8s ease-in-out infinite;
+  }
+  .scroll-hint .dim { margin-left: 0.6ch; }
+  .scroll-hint kbd {
+    font-family: var(--mono);
+    color: var(--b3);
+    background: var(--g2);
+    padding: 0.05em 0.45em;
+    border-radius: 2px;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0;
+  }
+  @keyframes bob {
+    0%, 100% { transform: translateY(0); opacity: 0.6; }
+    50% { transform: translateY(3px); opacity: 1; }
+  }
+
+  @media (max-width: 720px) {
+    .wm-line-2 { margin-left: clamp(0.8rem, 5vw, 2rem); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .wordmark { transition: none; }
+    .scroll-hint .arrow { animation: none; }
+    .hero-status .dot { animation: none; }
+    .wm-line { opacity: 1; transform: none; animation: none; }
+  }
+</style>
+
+<script>
+  type Cleanup = () => void;
+
+  function initHero(): Cleanup {
+    const hero = document.querySelector<HTMLElement>('[data-hero]');
+    if (!hero) return () => {};
+
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const cleanups: Cleanup[] = [];
+
+    // mark ready → triggers entrance + one-shot RGB split (CSS-driven)
+    requestAnimationFrame(() => hero.classList.add('is-ready'));
+
+    // ---- tagline decode animation ----
+    const tagline = hero.querySelector<HTMLElement>('[data-tagline]');
+    const fullText = tagline?.dataset.text ?? '';
+    if (tagline && fullText && !reduced) {
+      const glyphs = '!<>-_\\/[]{}—=+*^?#01';
+      const rand = (s: string) => s[Math.floor(Math.random() * s.length)];
+      let frame = 0;
+      const revealAt = (i: number) => i * 1.4 + Math.random() * 6;
+      let rafId = 0;
+
+      tagline.setAttribute('data-decoding', '');
+
+      const tick = () => {
+        let out = '';
+        let done = 0;
+        for (let i = 0; i < fullText.length; i++) {
+          const ch = fullText[i];
+          if (ch === ' ') { out += ' '; done++; continue; }
+          if (frame >= revealAt(i)) {
+            out += ch;
+            done++;
+          } else if (frame >= revealAt(i) - 14) {
+            out += rand(glyphs);
+          } else {
+            out += '';
+          }
+        }
+        tagline.textContent = out;
+        frame++;
+        if (done >= fullText.length) {
+          tagline.textContent = fullText;
+          tagline.removeAttribute('data-decoding');
+          return;
+        }
+        rafId = requestAnimationFrame(tick);
+      };
+      // small delay so it lands after the wordmark entrance
+      const t = window.setTimeout(() => { rafId = requestAnimationFrame(tick); }, 360);
+      cleanups.push(() => { window.clearTimeout(t); cancelAnimationFrame(rafId); });
+    }
+
+    // ---- mouse parallax on the wordmark ----
+    const wordmark = hero.querySelector<HTMLElement>('[data-wordmark]');
+    if (wordmark && !reduced && window.matchMedia('(pointer: fine)').matches) {
+      let targetX = 0, targetY = 0, targetR = 0;
+      let curX = 0, curY = 0, curR = 0;
+      let rafId = 0;
+      let running = false;
+
+      const MAX_PX = 14;   // max translate
+      const MAX_DEG = 1.6; // max rotation
+
+      const onMove = (e: PointerEvent) => {
+        // -0.5 .. 0.5 around viewport center
+        const nx = e.clientX / window.innerWidth - 0.5;
+        const ny = e.clientY / window.innerHeight - 0.5;
+        targetX = nx * MAX_PX * 2;
+        targetY = ny * MAX_PX;
+        targetR = nx * MAX_DEG;
+        if (!running) { running = true; rafId = requestAnimationFrame(loop); }
+      };
+
+      const loop = () => {
+        curX += (targetX - curX) * 0.08;
+        curY += (targetY - curY) * 0.08;
+        curR += (targetR - curR) * 0.08;
+        wordmark.style.setProperty('--wm-x', `${curX.toFixed(2)}px`);
+        wordmark.style.setProperty('--wm-y', `${curY.toFixed(2)}px`);
+        wordmark.style.setProperty('--wm-rot', `${curR.toFixed(3)}deg`);
+        const settled =
+          Math.abs(targetX - curX) < 0.1 &&
+          Math.abs(targetY - curY) < 0.1 &&
+          Math.abs(targetR - curR) < 0.01;
+        if (settled) { running = false; return; }
+        rafId = requestAnimationFrame(loop);
+      };
+
+      window.addEventListener('pointermove', onMove, { passive: true });
+      cleanups.push(() => {
+        window.removeEventListener('pointermove', onMove);
+        cancelAnimationFrame(rafId);
+      });
+    }
+
+    return () => cleanups.forEach((fn) => fn());
+  }
+
+  let teardown: Cleanup = initHero();
+  // Astro view-transitions friendly re-init
+  document.addEventListener('astro:before-swap', () => teardown?.());
+  document.addEventListener('astro:page-load', () => { teardown = initHero(); });
+</script>

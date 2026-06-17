@@ -1,0 +1,675 @@
+---
+import { site } from '../data/site';
+
+/* ── Stats — only numbers defensible from the CV ── */
+const stats = [
+  { value: '10+', label: 'anni di codice' },
+  { value: '50+', label: 'siti in produzione' },
+  { value: '10+', label: 'integrazioni API' },
+  { value: '3', label: 'aziende servite' },
+  { value: '∞', label: 'caffè' },
+] as const;
+
+/* ── Competenze — hierarchical tree: dominio › categoria › skill ── */
+const skillTree = [
+  {
+    id: 'backend',
+    label: 'Backend',
+    icon: '▙',
+    groups: [
+      { label: 'Framework', items: ['Laravel', 'Lumen', 'Livewire', 'FilamentPHP', 'Inertia.js', 'NativePHP'] },
+      { label: 'Linguaggi', items: ['PHP', 'Node.js', 'Python', 'Rust', 'Bash'] },
+      { label: 'Database', items: ['MySQL', 'PostgreSQL', 'TimescaleDB', 'ClickHouse', 'Redis', 'SQLite', 'Eloquent ORM', 'Design DB relazionali'] },
+      { label: 'Testing & Qualità', items: ['Pest', 'PHPUnit', 'PHPStan / Larastan', 'Pint', 'TDD'] },
+      { label: 'Architettura', items: ['MVC', 'REST API', 'Queue / Jobs', 'WebSocket'] },
+    ],
+  },
+  {
+    id: 'frontend',
+    label: 'Frontend',
+    icon: '◧',
+    groups: [
+      { label: 'Framework', items: ['VueJS', 'React', 'Svelte', 'Alpine.js', 'Astro', 'Livewire'] },
+      { label: 'Linguaggi', items: ['TypeScript', 'JavaScript (ES2023)', 'HTML5'] },
+      { label: 'Styling', items: ['TailwindCSS', 'Sass / CSS', 'PugJS'] },
+      { label: 'Tooling', items: ['Vite', 'SEO onsite'] },
+    ],
+  },
+  {
+    id: 'ai',
+    label: 'AI & Agentic',
+    icon: '◆',
+    groups: [
+      { label: 'LLM', items: ['LLM', 'Prompt Engineering', 'RAG', 'LLM Router', 'Context Engineering'] },
+      { label: 'Protocolli & Tool', items: ['MCP (Model Context Protocol)', 'Custom Skills', 'Custom Agents', 'Tool / Function calling'] },
+      { label: 'Workflow', items: ['Agentic Development', 'Spec-Driven Development', 'Claude Code', 'Cursor', 'n8n'] },
+      { label: 'Provider & Runtime', items: ['Anthropic Claude', 'OpenAI / ChatGPT', 'Ollama (local)'] },
+    ],
+  },
+  {
+    id: 'devops',
+    label: 'Infrastruttura / DevOps',
+    icon: '▤',
+    groups: [
+      { label: 'Server', items: ['Linux', 'Nginx', 'Docker', 'SSH', 'Cloud hosting'] },
+      { label: 'Pipeline', items: ['Git', 'CI/CD', 'GitHub / Forgejo Actions', 'Deploy zero-downtime'] },
+      { label: 'Edge & Sicurezza', items: ['Cloudflare', 'SSL / Let’s Encrypt', 'Backup automatici'] },
+      { label: 'CMS / E-commerce', items: ['WordPress / WooCommerce', 'Shopify', 'Magento 2', 'Prestashop'] },
+    ],
+  },
+  {
+    id: 'integrazioni',
+    label: 'Integrazioni & API',
+    icon: '◈',
+    groups: [
+      { label: 'Fiscale & Logistica', items: ['SDI / Fatturazione Elettronica', 'GLS · BRT · SDA'] },
+      { label: 'Pagamenti & Servizi', items: ['Stripe', 'Mailchimp', 'Google Maps'] },
+      { label: 'IoT & Industria 4.0', items: ['Modbus', 'OPC-UA', 'Teltonika GPS', 'CaRGOS'] },
+    ],
+  },
+] as const;
+
+const skillTotal = skillTree.reduce(
+  (n, c) => n + c.groups.reduce((m, g) => m + g.items.length, 0),
+  0
+);
+
+/* ── Percorso — 3 roles, rewritten tight ── */
+const timeline = [
+  {
+    year: '2022 →',
+    tag: 'OGGI',
+    role: 'Full Stack Developer · Freelance',
+    org: 'HydraLabs — Isernia, IT',
+    lines: [
+      'Progetto e sviluppo gestionali cloud su misura: CRM, ERP industriali, SaaS per spedizioni, noleggio auto e magazzino.',
+      'Stack TALL (Tailwind · Alpine · Laravel · Livewire), Industria 4.0 (Modbus, OPC-UA) e infrastruttura cloud ad alte prestazioni gestita in autonomia.',
+    ],
+  },
+  {
+    year: '2019 →',
+    tag: null,
+    role: 'Webmaster / Full Stack',
+    org: 'Grafica Isernina s.r.l. — Isernia, IT',
+    lines: [
+      'Architetto e mantengo Labeldoo.com: generatore di preventivi con backend ibrido WooCommerce + Laravel e front-end VueJS.',
+      'Sviluppo l’ERP/CRM ordini e l’intera infrastruttura cloud aziendale. Laravel · FilamentPHP · Livewire · WooCommerce.',
+    ],
+  },
+  {
+    year: '2015–19',
+    tag: null,
+    role: 'Full Stack Developer & Software Engineer',
+    org: 'Novus Studios s.r.l. — Isernia, IT',
+    lines: [
+      'Piattaforme ERP/CRM, siti Laravel custom e API per app mobili. 15+ siti WordPress/WooCommerce consegnati.',
+      'Gestione di un hosting Linux dockerizzato con 50+ siti, networking aziendale e hardware su misura.',
+    ],
+  },
+] as const;
+---
+
+<div class="wrap">
+  <header class="head">
+    <p class="kicker">[ Profilo ]</p>
+    <h2 class="h-section">// Chi sono</h2>
+    <p class="head-sub mono">~/profilo — whoami</p>
+  </header>
+
+  <div class="grid">
+    {/* ── BIO ── */}
+    <section class="bio" aria-label="Biografia">
+      <p class="bio-lead">
+        <span class="prompt" aria-hidden="true">$</span>
+        Sono <strong>{site.name}</strong>, sviluppatore full-stack con
+        <strong> 10+ anni</strong> di esperienza tra Laravel, VueJS e Livewire.
+      </p>
+      <p class="bio-body">
+        Costruisco gestionali cloud, e-commerce e software su misura — dallo
+        schema del database al deploy. Porto avanti progetti in autonomia,
+        dall’analisi dei requisiti alla consegna, con codice efficiente
+        progettato per durare.
+      </p>
+      <p class="bio-body">
+        Perfezionista per natura e in costante aggiornamento, integro sistemi
+        di terze parti e parlo con le macchine industriali tanto quanto con
+        i browser. <span class="cursor blink" aria-hidden="true">█</span>
+      </p>
+    </section>
+
+    {/* ── STATS ── */}
+    <section class="stats" aria-label="Numeri">
+      <ul class="stats-grid" role="list">
+        {stats.map((s) => (
+          <li class="stat box">
+            <span class="stat-value mono">{s.value}</span>
+            <span class="stat-label mono">{s.label}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  </div>
+
+  {/* ── COMPETENZE — albero gerarchico ── */}
+  <section class="skills" aria-labelledby="skills-h">
+    <h3 id="skills-h" class="block-h mono">
+      <span class="block-tok" aria-hidden="true">##</span> Competenze
+      <span class="cat-count" aria-hidden="true">[{skillTotal}]</span>
+    </h3>
+    <p class="tree-root mono" aria-hidden="true">└─ ~/skills</p>
+    <div class="tree" data-skills>
+      {skillTree.map((cat, ci) => {
+        const lastCat = ci === skillTree.length - 1;
+        const catCount = cat.groups.reduce((m, g) => m + g.items.length, 0);
+        return (
+          <article class:list={['tree-cat', { last: lastCat }]}>
+            <h4 class="tree-cat-h mono">
+              <span class="tw tw-cat" aria-hidden="true">{lastCat ? '└─' : '├─'}</span>
+              <span class="cat-icon" aria-hidden="true">{cat.icon}</span>
+              {cat.label}
+              <span class="cat-count" aria-hidden="true">[{catCount}]</span>
+            </h4>
+            <div class="tree-cat-body">
+              {cat.groups.map((g, gi) => {
+                const lastG = gi === cat.groups.length - 1;
+                return (
+                  <div class:list={['tree-sub', { last: lastG }]}>
+                    <div class="tree-sub-h mono">
+                      <span class="tw" aria-hidden="true">{lastG ? '└─' : '├─'}</span>
+                      {g.label}
+                    </div>
+                    <ul class="chips" role="list">
+                      {g.items.map((item) => (
+                        <li class="chip mono" data-chip>{item}</li>
+                      ))}
+                    </ul>
+                  </div>
+                );
+              })}
+            </div>
+          </article>
+        );
+      })}
+    </div>
+  </section>
+
+  {/* ── PERCORSO ── */}
+  <section class="path" aria-labelledby="path-h">
+    <h3 id="path-h" class="block-h mono">
+      <span class="block-tok" aria-hidden="true">##</span> Percorso
+    </h3>
+    <ol class="timeline" role="list">
+      {timeline.map((t, i) => {
+        const last = i === timeline.length - 1;
+        return (
+          <li class="tl-item">
+            <div class="tl-rail" aria-hidden="true">
+              <span class="tl-marker">[+]</span>
+              {!last && <span class="tl-line" />}
+            </div>
+            <div class="tl-body">
+              <div class="tl-top">
+                <span class="tl-year mono">{t.year}</span>
+                {t.tag && <span class="tl-tag mono">● {t.tag}</span>}
+              </div>
+              <h4 class="tl-role">{t.role}</h4>
+              <p class="tl-org mono">
+                <span class="tl-branch" aria-hidden="true">└─</span>
+                {t.org}
+              </p>
+              {t.lines.map((line) => (
+                <p class="tl-line-txt">{line}</p>
+              ))}
+            </div>
+          </li>
+        );
+      })}
+    </ol>
+
+    <a
+      class="linkedin box"
+      data-nav
+      href={site.linkedin}
+      target="_blank"
+      rel="noopener"
+    >
+      <span class="li-tok mono" aria-hidden="true">in/</span>
+      <span class="li-txt mono">Curriculum completo su LinkedIn</span>
+      <span class="li-arrow mono" aria-hidden="true">↗</span>
+    </a>
+  </section>
+</div>
+
+<style>
+  .head {
+    margin-bottom: clamp(2.25rem, 5vw, 3.5rem);
+  }
+  .head-sub {
+    margin: 0.85rem 0 0;
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--mute);
+  }
+  .head-sub::before {
+    content: '> ';
+    color: var(--g-dim);
+  }
+
+  /* ── top grid: bio + stats ── */
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: clamp(1.6rem, 4vw, 2.8rem);
+    align-items: start;
+  }
+  @media (min-width: 900px) {
+    .grid {
+      grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+    }
+  }
+
+  /* ── BIO ── */
+  .bio {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    min-width: 0;
+  }
+  .bio-lead {
+    margin: 0;
+    font-size: clamp(1.15rem, 2.6vw, 1.5rem);
+    line-height: 1.45;
+    color: var(--fg);
+    letter-spacing: -0.01em;
+  }
+  .bio-lead strong {
+    color: var(--g1);
+    font-weight: 700;
+  }
+  .prompt {
+    color: var(--g2);
+    margin-right: 0.5ch;
+    font-family: var(--mono);
+  }
+  .bio-body {
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.7;
+    color: var(--fg-soft);
+    max-width: 56ch;
+  }
+  .cursor {
+    color: var(--g1);
+    font-size: 0.8em;
+    margin-left: 0.1ch;
+  }
+
+  /* ── STATS ── */
+  .stats-grid {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.6rem;
+  }
+  .stats-grid .stat:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+  .stat {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    padding: 0.9rem 1rem;
+    border-radius: 3px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  }
+  .stat:hover {
+    border-color: var(--line-strong);
+    box-shadow: 0 0 18px -6px color-mix(in srgb, var(--g1) 45%, transparent);
+  }
+  .stat-value {
+    font-size: clamp(1.7rem, 4.5vw, 2.4rem);
+    font-weight: 700;
+    line-height: 1;
+    color: var(--g1);
+    letter-spacing: -0.02em;
+    text-shadow: 0 0 22px color-mix(in srgb, var(--g1) 30%, transparent);
+  }
+  .stat-label {
+    font-size: 0.66rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--mute);
+  }
+
+  /* ── section blocks ── */
+  .skills,
+  .path {
+    margin-top: clamp(2.75rem, 6vw, 4.5rem);
+  }
+  .block-h {
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--fg);
+    margin: 0 0 1.5rem;
+    padding-bottom: 0.7rem;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    gap: 0.7ch;
+  }
+  .block-tok {
+    color: var(--g2);
+  }
+
+  /* ── COMPETENZE — albero gerarchico ── */
+  .skills .cat-count {
+    color: var(--mute);
+    font-size: 0.66rem;
+    margin-left: auto;
+    font-weight: 400;
+  }
+  .tree-root {
+    margin: -0.6rem 0 1.4rem;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    color: var(--g-dim);
+  }
+  .tree {
+    display: flex;
+    flex-direction: column;
+  }
+  .tree-cat {
+    min-width: 0;
+  }
+  .tree-cat-h {
+    display: flex;
+    align-items: center;
+    gap: 0.7ch;
+    font-size: 0.82rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--fg);
+    margin: 0 0 0.6rem;
+  }
+  .tw {
+    color: var(--g-dim);
+    font-weight: 400;
+  }
+  .tw-cat {
+    color: var(--g2);
+  }
+  .cat-icon {
+    color: var(--g2);
+    font-size: 0.9rem;
+    text-shadow: 0 0 12px color-mix(in srgb, var(--g2) 40%, transparent);
+  }
+
+  /* the tree spine: vertical guide line down each category's children */
+  .tree-cat-body {
+    margin-left: 0.65ch;
+    padding-left: 1.7ch;
+    border-left: 1px solid var(--line);
+    display: flex;
+    flex-direction: column;
+    gap: 0.95rem;
+    padding-bottom: 1.4rem;
+  }
+  /* last category: fade the spine out so the tree "ends" cleanly */
+  .tree-cat.last .tree-cat-body {
+    border-left-color: transparent;
+    background: linear-gradient(var(--line), var(--line)) left / 1px 1.1rem no-repeat;
+    padding-bottom: 0;
+  }
+
+  .tree-sub {
+    min-width: 0;
+  }
+  .tree-sub-h {
+    display: flex;
+    align-items: center;
+    gap: 0.6ch;
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--fg-soft);
+    margin: 0 0 0.55rem;
+    margin-left: -1.7ch; /* pull the ├─ back onto the spine */
+  }
+
+  .chips {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    margin-left: 1.4ch;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+  }
+  .chip {
+    --d: 1; /* normalized cursor distance 0..1, set by script */
+    position: relative;
+    font-size: 0.7rem;
+    letter-spacing: 0.01em;
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    padding: 0.34em 0.6em 0.34em 1.1em;
+    background: color-mix(in srgb, var(--b1) 14%, transparent);
+    transition: color 0.35s ease, border-color 0.35s ease, background 0.35s ease;
+    /* glow toward cursor — interpolated by --d (1 = far, 0 = near) */
+    border-color: color-mix(
+      in srgb,
+      var(--g2) calc((1 - var(--d)) * 55%),
+      var(--line)
+    );
+    color: color-mix(
+      in srgb,
+      var(--g1) calc((1 - var(--d)) * 55%),
+      var(--fg-soft)
+    );
+  }
+  .chip::before {
+    content: '·';
+    position: absolute;
+    left: 0.45em;
+    color: color-mix(in srgb, var(--g2) calc((1 - var(--d)) * 80%), var(--fg-soft));
+  }
+  .chip:hover {
+    color: var(--fg);
+    border-color: var(--line-strong);
+  }
+
+  /* ── PERCORSO / timeline ── */
+  .timeline {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+  .tl-item {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 1rem;
+  }
+  .tl-rail {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .tl-marker {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--g1);
+    line-height: 1.4;
+    text-shadow: 0 0 12px color-mix(in srgb, var(--g1) 50%, transparent);
+  }
+  .tl-line {
+    flex: 1;
+    width: 1px;
+    margin: 0.35rem 0 0;
+    min-height: 1.5rem;
+    background: linear-gradient(180deg, var(--line-strong), var(--line));
+  }
+  .tl-body {
+    min-width: 0;
+    padding-bottom: clamp(1.4rem, 3.5vw, 2.2rem);
+  }
+  .tl-top {
+    display: flex;
+    align-items: center;
+    gap: 0.8ch;
+    flex-wrap: wrap;
+    margin-bottom: 0.4rem;
+  }
+  .tl-year {
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: var(--g2);
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    padding: 0.15em 0.55em;
+    background: color-mix(in srgb, var(--g1) 8%, transparent);
+  }
+  .tl-tag {
+    font-size: 0.6rem;
+    letter-spacing: 0.14em;
+    color: var(--g1);
+    text-transform: uppercase;
+  }
+  .tl-role {
+    font-size: clamp(1.05rem, 2.4vw, 1.25rem);
+    font-weight: 700;
+    color: var(--fg);
+    margin: 0 0 0.25rem;
+    letter-spacing: -0.01em;
+  }
+  .tl-org {
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    color: var(--fg-soft);
+    margin: 0 0 0.7rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6ch;
+  }
+  .tl-branch {
+    color: var(--g-dim);
+  }
+  .tl-line-txt {
+    font-size: 0.88rem;
+    line-height: 1.6;
+    color: var(--fg-soft);
+    margin: 0 0 0.5rem;
+    max-width: 64ch;
+  }
+  .tl-line-txt:last-child {
+    margin-bottom: 0;
+  }
+
+  /* ── LinkedIn CTA ── */
+  .linkedin {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7ch;
+    margin-top: 1rem;
+    padding: 0.8rem 1.1rem;
+    border-radius: 3px;
+    font-size: 0.8rem;
+    letter-spacing: 0.04em;
+    color: var(--fg-soft);
+    transition: border-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
+  }
+  .linkedin:hover {
+    border-color: var(--line-strong);
+    color: var(--fg);
+    box-shadow: 0 0 22px -8px color-mix(in srgb, var(--g1) 55%, transparent);
+  }
+  .li-tok {
+    color: var(--g1);
+    font-weight: 700;
+  }
+  .li-arrow {
+    color: var(--g2);
+    transition: transform 0.25s ease;
+  }
+  .linkedin:hover .li-arrow {
+    transform: translate(2px, -2px);
+  }
+
+  /* reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    .chip,
+    .stat,
+    .linkedin,
+    .li-arrow {
+      transition: none !important;
+    }
+  }
+</style>
+
+<script>
+  // Skill chips glow toward the cursor by setting a per-chip --d
+  // (normalized distance 0..1; 0 = under cursor, 1 = far / out of range).
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const container = document.querySelector<HTMLElement>('[data-skills]');
+  const chips = Array.from(
+    document.querySelectorAll<HTMLElement>('[data-chip]')
+  );
+
+  if (container && chips.length && !reduced) {
+    const RADIUS = 220; // px influence radius
+    let raf: number | null = null;
+    let mx = -9999;
+    let my = -9999;
+
+    const paint = () => {
+      raf = null;
+      for (const chip of chips) {
+        const r = chip.getBoundingClientRect();
+        const cx = r.left + r.width / 2;
+        const cy = r.top + r.height / 2;
+        const dist = Math.hypot(mx - cx, my - cy);
+        const d = Math.min(1, dist / RADIUS);
+        chip.style.setProperty('--d', d.toFixed(3));
+      }
+    };
+
+    const schedule = () => {
+      if (raf == null) raf = requestAnimationFrame(paint);
+    };
+
+    const onMove = (e: PointerEvent) => {
+      mx = e.clientX;
+      my = e.clientY;
+      schedule();
+    };
+
+    const onLeave = () => {
+      mx = -9999;
+      my = -9999;
+      schedule();
+    };
+
+    window.addEventListener('pointermove', onMove, { passive: true });
+    container.addEventListener('pointerleave', onLeave, { passive: true });
+
+    document.addEventListener(
+      'astro:before-swap',
+      () => {
+        window.removeEventListener('pointermove', onMove);
+        container.removeEventListener('pointerleave', onLeave);
+        if (raf != null) cancelAnimationFrame(raf);
+      },
+      { once: true }
+    );
+  }
+</script>

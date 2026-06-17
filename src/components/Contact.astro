@@ -1,0 +1,515 @@
+---
+import { site } from '../data/site';
+
+// LinkedIn slug for terminal display (keeps the faux-shell line tidy)
+const linkedinSlug = '/vasyl-halushchak';
+const statusLabel = site.available ? 'disponibile' : 'occupato';
+const year = 2026;
+---
+
+<div class="wrap contact" data-contact>
+  <!-- ───────────── header ───────────── -->
+  <header class="head">
+    <p class="kicker">Contatti</p>
+    <h2 class="h-section cta-title">
+      <span class="cta-line">HAI&nbsp;UN'IDEA?</span>
+      <span class="cta-line cta-line-2">COSTRUIAMOLA<span class="dot-glow">.</span></span>
+    </h2>
+    <p class="lead">
+      Scrivimi per <span class="hl">gestionali cloud</span>,
+      <span class="hl">e-commerce</span> o
+      <span class="hl">software su misura</span> — dallo schema del database al deploy.
+    </p>
+  </header>
+
+  <!-- ───────────── faux terminal ───────────── -->
+  <div class="box term" role="group" aria-label="Scheda contatto">
+    <div class="term-bar" aria-hidden="true">
+      <span class="tb-dot"></span><span class="tb-dot"></span><span class="tb-dot"></span>
+      <span class="tb-title">contatto.sh</span>
+    </div>
+    <pre class="term-body"><code><span class="t-prompt"><span class="t-user">vasyl@hydralabs.it</span><span class="t-sep">:</span><span class="t-path">~</span><span class="t-glyph">$</span></span> contatto <span class="t-flag">--invia</span>
+<span class="t-arrow">&gt;</span> Email <span class="t-fill">..........</span> <a class="t-val t-link" href={`mailto:${site.email}`}>{site.email}</a>
+<span class="t-arrow">&gt;</span> LinkedIn <span class="t-fill">.......</span> <a class="t-val t-link" href={site.linkedin} target="_blank" rel="noopener noreferrer">{linkedinSlug}</a>
+<span class="t-arrow">&gt;</span> Sede <span class="t-fill">...........</span> <span class="t-val">{site.location}</span>
+<span class="t-arrow">&gt;</span> Stato <span class="t-fill">..........</span> <span class="t-val t-status" data-available={String(site.available)}><span class="t-status-dot" aria-hidden="true">●</span> {statusLabel}</span>
+<span class="t-prompt"><span class="t-user">vasyl@hydralabs.it</span><span class="t-sep">:</span><span class="t-path">~</span><span class="t-glyph">$</span></span> <span class="blink t-caret" aria-hidden="true">_</span></code></pre>
+  </div>
+
+  <!-- ───────────── primary action: email ───────────── -->
+  <a
+    class="email-cta"
+    data-nav
+    data-email
+    href={`mailto:${site.email}`}
+    aria-label={`Scrivi a ${site.email}`}
+  >
+    <span class="email-glow" aria-hidden="true"></span>
+    <span class="email-in">
+      <span class="email-kicker mono">
+        <span class="ek-arrow" aria-hidden="true">→</span> Scrivimi una mail
+      </span>
+      <span class="email-addr">{site.email}</span>
+      <span class="email-meta mono" aria-hidden="true">
+        <span class="em-brk">[</span> invia <span class="em-brk">]</span>
+        <span class="em-sep">·</span> rispondo entro 24h
+      </span>
+    </span>
+    <span class="email-send mono" aria-hidden="true">↗</span>
+  </a>
+
+  <!-- ───────────── secondary: linkedin ───────────── -->
+  <div class="alt-row">
+    <a
+      class="alt-link"
+      data-nav
+      href={site.linkedin}
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      <span class="alt-brk" aria-hidden="true">[</span>
+      LinkedIn
+      <span class="alt-ext" aria-hidden="true">↗</span>
+      <span class="alt-brk" aria-hidden="true">]</span>
+    </a>
+  </div>
+
+  <!-- ───────────── footer ───────────── -->
+  <footer class="foot">
+    <div class="foot-rule" aria-hidden="true">
+      <span class="fr-brk">[</span>
+      <span class="fr-line"></span>
+      <span class="fr-mark">/// EOF</span>
+      <span class="fr-line"></span>
+      <span class="fr-brk">]</span>
+    </div>
+
+    <div class="foot-grid">
+      <p class="foot-copy mono">
+        <span class="fc-c">©</span> {year} {site.name}
+      </p>
+      <p class="foot-built mono">
+        Costruito con <span class="fb-hl">Astro</span>
+        <span class="fb-sep">·</span> ASCII-core
+        <span class="fb-sep">·</span> senza framework UI
+      </p>
+      <a class="foot-top" data-nav href="#home" aria-label="Torna all'inizio">
+        torna su <span class="ft-arrow" aria-hidden="true">↑</span>
+      </a>
+    </div>
+
+    <pre class="foot-sig mono" aria-hidden="true">[ ]——[ vasyl.cc ]——[ ]</pre>
+  </footer>
+</div>
+
+<style>
+  .contact {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(1.8rem, 4vw, 2.8rem);
+  }
+
+  /* ---- header ---- */
+  .head {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .cta-title {
+    display: flex;
+    flex-direction: column;
+    line-height: 0.96;
+    color: var(--fg);
+  }
+  .cta-line-2 { margin-left: clamp(0.8rem, 5vw, 4rem); }
+  .dot-glow {
+    color: var(--g1);
+    text-shadow: 0 0 18px color-mix(in srgb, var(--g1) 60%, transparent);
+  }
+  .lead {
+    margin: 0;
+    max-width: 56ch;
+    font-size: clamp(0.95rem, 2vw, 1.2rem);
+    line-height: 1.55;
+    color: var(--fg-soft);
+    text-wrap: balance;
+  }
+  .hl {
+    color: var(--fg);
+    border-bottom: 1px solid var(--line-strong);
+  }
+
+  /* ---- faux terminal ---- */
+  .term {
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .term-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.5ch;
+    padding: 0.5rem 0.85rem;
+    border-bottom: 1px solid var(--line);
+    background: rgba(2, 11, 18, 0.5);
+  }
+  .tb-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--line-strong);
+  }
+  .tb-dot:first-child { background: color-mix(in srgb, var(--g1) 70%, transparent); }
+  .tb-title {
+    margin-left: 0.6ch;
+    font-size: 0.66rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--mute);
+  }
+  .term-body {
+    margin: 0;
+    padding: clamp(1rem, 2.6vw, 1.6rem);
+    font-family: var(--mono);
+    font-size: clamp(0.74rem, 1.7vw, 0.92rem);
+    line-height: 1.85;
+    color: var(--fg-soft);
+    overflow-x: auto;
+    white-space: pre;
+  }
+  .term-body code { font: inherit; }
+  .t-prompt { color: var(--mute); }
+  .t-user { color: var(--g2); }
+  .t-sep { color: var(--mute); }
+  .t-path { color: var(--b1); filter: brightness(1.9); }
+  .t-glyph { color: var(--g1); margin-left: 0.15ch; }
+  .t-flag { color: var(--g1); }
+  .t-arrow { color: var(--g-dim); }
+  .t-fill { color: var(--mute); opacity: 0.6; }
+  .t-val { color: var(--fg); }
+  .t-link {
+    color: var(--g2);
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.18s ease, text-shadow 0.18s ease;
+  }
+  .t-link:hover,
+  .t-link:focus-visible {
+    border-bottom-color: var(--g2);
+    text-shadow: 0 0 12px color-mix(in srgb, var(--g1) 55%, transparent);
+  }
+  .t-status[data-available='true'] { color: var(--g1); }
+  .t-status[data-available='false'] { color: var(--mute); }
+  .t-status-dot { font-size: 0.85em; }
+  .t-caret { color: var(--g1); font-weight: 700; }
+
+  /* ---- email centerpiece ---- */
+  .email-cta {
+    --glow: 0; /* 0..1 cursor-proximity, set by script */
+    --gx: 50%;
+    --gy: 50%;
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.2rem;
+    padding: clamp(1.4rem, 4vw, 2.6rem) clamp(1.3rem, 4vw, 2.4rem);
+    border: 1px solid var(--line-strong);
+    border-radius: 4px;
+    overflow: hidden;
+    background:
+      linear-gradient(180deg, rgba(8, 27, 47, 0.55), rgba(2, 11, 18, 0.7));
+    text-decoration: none;
+    color: inherit;
+    /* glow intensifies as cursor approaches (--glow) */
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--g2) calc(20% + var(--glow) * 60%), transparent),
+      0 calc(14px + var(--glow) * 18px) calc(40px + var(--glow) * 50px)
+        calc(-28px + var(--glow) * 6px)
+        color-mix(in srgb, var(--g1) calc(30% + var(--glow) * 55%), transparent);
+    transition: box-shadow 0.3s ease, border-color 0.3s ease, transform 0.2s ease;
+  }
+  /* radial light that follows + brightens with proximity */
+  .email-glow {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    opacity: calc(0.12 + var(--glow) * 0.88);
+    background: radial-gradient(
+      460px circle at var(--gx) var(--gy),
+      color-mix(in srgb, var(--g1) 22%, transparent),
+      transparent 62%
+    );
+    transition: opacity 0.25s ease;
+  }
+  .email-in {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    min-width: 0;
+  }
+  .email-kicker {
+    font-size: 0.72rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--g2);
+  }
+  .ek-arrow { color: var(--g1); }
+  .email-addr {
+    font-size: clamp(1.5rem, 6vw, 3.1rem);
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    line-height: 1;
+    color: var(--fg);
+    word-break: break-word;
+    text-shadow: 0 0 calc(var(--glow) * 26px)
+      color-mix(in srgb, var(--g1) calc(var(--glow) * 70%), transparent);
+    transition: text-shadow 0.25s ease, color 0.25s ease;
+  }
+  .email-meta {
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    color: var(--mute);
+  }
+  .em-brk { color: var(--g-dim); }
+  .em-sep { margin-inline: 0.4ch; color: var(--line-strong); }
+  .email-send {
+    position: relative;
+    z-index: 1;
+    flex-shrink: 0;
+    font-size: clamp(1.6rem, 5vw, 2.6rem);
+    color: var(--g2);
+    transform: translate(calc(var(--glow) * 4px), calc(var(--glow) * -4px));
+    text-shadow: 0 0 calc(var(--glow) * 22px)
+      color-mix(in srgb, var(--g1) calc(var(--glow) * 80%), transparent);
+    transition: transform 0.25s ease, text-shadow 0.25s ease;
+  }
+
+  /* hover + keyboard-active: fully lit (works even without JS / on touch) */
+  .email-cta:hover,
+  .email-cta:focus-visible,
+  .email-cta.is-active {
+    border-color: var(--g2);
+    transform: translateY(-2px);
+  }
+  .email-cta:hover .email-addr,
+  .email-cta:focus-visible .email-addr,
+  .email-cta.is-active .email-addr {
+    color: var(--g1);
+    text-shadow: 0 0 28px color-mix(in srgb, var(--g1) 60%, transparent);
+  }
+  .email-cta:hover .email-glow,
+  .email-cta:focus-visible .email-glow,
+  .email-cta.is-active .email-glow {
+    opacity: 1;
+  }
+  .email-cta:hover .email-send,
+  .email-cta:focus-visible .email-send,
+  .email-cta.is-active .email-send {
+    transform: translate(4px, -4px);
+    text-shadow: 0 0 22px color-mix(in srgb, var(--g1) 80%, transparent);
+  }
+  .email-cta:focus-visible { outline: none; }
+
+  /* ---- secondary linkedin ---- */
+  .alt-row { display: flex; }
+  .alt-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6ch;
+    font-family: var(--mono);
+    font-size: 0.84rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--fg);
+    padding: 0.7em 1.2em;
+    border: 1px solid var(--line-strong);
+    border-radius: 3px;
+    background: transparent;
+    transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+  }
+  .alt-brk { color: var(--g-dim); transition: color 0.15s ease; }
+  .alt-ext { color: var(--g2); transition: color 0.15s ease, transform 0.2s ease; }
+  .alt-link:hover,
+  .alt-link:focus-visible,
+  .alt-link.is-active {
+    color: var(--b3);
+    background: var(--g1);
+    border-color: var(--g1);
+  }
+  .alt-link:hover .alt-brk,
+  .alt-link:focus-visible .alt-brk,
+  .alt-link.is-active .alt-brk,
+  .alt-link:hover .alt-ext,
+  .alt-link:focus-visible .alt-ext,
+  .alt-link.is-active .alt-ext { color: var(--b3); }
+  .alt-link:hover .alt-ext { transform: translate(2px, -2px); }
+  .alt-link:focus-visible { outline: none; }
+
+  /* ---- footer ---- */
+  .foot {
+    margin-top: clamp(1rem, 4vw, 2.5rem);
+    display: flex;
+    flex-direction: column;
+    gap: 1.4rem;
+  }
+  .foot-rule {
+    display: flex;
+    align-items: center;
+    gap: 0.8ch;
+    color: var(--g-dim);
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+  }
+  .fr-brk { color: var(--g2); }
+  .fr-line {
+    flex: 1;
+    height: 1px;
+    background: repeating-linear-gradient(
+      90deg,
+      var(--line-strong) 0,
+      var(--line-strong) 4px,
+      transparent 4px,
+      transparent 9px
+    );
+  }
+  .fr-mark { color: var(--mute); white-space: nowrap; }
+
+  .foot-grid {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.9rem 1.6rem;
+    font-size: 0.74rem;
+    letter-spacing: 0.04em;
+  }
+  .foot-copy { color: var(--fg-soft); margin: 0; }
+  .fc-c { color: var(--g2); }
+  .foot-built { color: var(--mute); margin: 0; }
+  .fb-hl { color: var(--g2); }
+  .fb-sep { margin-inline: 0.5ch; color: var(--line-strong); }
+
+  .foot-top {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5ch;
+    font-family: var(--mono);
+    font-size: 0.74rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--fg-soft);
+    padding: 0.45em 0.9em;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+  }
+  .ft-arrow { color: var(--g2); transition: transform 0.2s ease; }
+  .foot-top:hover,
+  .foot-top:focus-visible,
+  .foot-top.is-active {
+    color: var(--fg);
+    border-color: var(--g2);
+    background: color-mix(in srgb, var(--g1) 10%, transparent);
+  }
+  .foot-top:hover .ft-arrow,
+  .foot-top:focus-visible .ft-arrow,
+  .foot-top.is-active .ft-arrow { transform: translateY(-3px); }
+  .foot-top:focus-visible { outline: none; }
+
+  .foot-sig {
+    margin: 0;
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    color: var(--g-dim);
+    opacity: 0.7;
+    text-align: center;
+    overflow-x: auto;
+  }
+
+  @media (max-width: 600px) {
+    .foot-grid { flex-direction: column; align-items: flex-start; }
+    .email-cta { flex-direction: column; align-items: flex-start; }
+    .email-send { align-self: flex-end; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .email-cta,
+    .email-glow,
+    .email-addr,
+    .email-send,
+    .ft-arrow,
+    .alt-ext {
+      transition: none !important;
+      transform: none !important;
+    }
+  }
+</style>
+
+<script>
+  type Cleanup = () => void;
+
+  function initContact(): Cleanup {
+    const cta = document.querySelector<HTMLElement>('[data-email]');
+    if (!cta) return () => {};
+
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const fine = window.matchMedia('(pointer: fine)').matches;
+    if (reduced || !fine) return () => {};
+
+    // proximity-driven glow: brighter as the global cursor nears the block.
+    let raf: number | null = null;
+    let lastX = 0;
+    let lastY = 0;
+
+    const update = () => {
+      raf = null;
+      const r = cta.getBoundingClientRect();
+      if (r.width === 0 || r.height === 0) return;
+
+      // position of the radial light within the block (clamped 0..1)
+      const localX = (lastX - r.left) / r.width;
+      const localY = (lastY - r.top) / r.height;
+      cta.style.setProperty('--gx', `${(Math.min(Math.max(localX, 0), 1) * 100).toFixed(1)}%`);
+      cta.style.setProperty('--gy', `${(Math.min(Math.max(localY, 0), 1) * 100).toFixed(1)}%`);
+
+      // distance from cursor to nearest edge of the block
+      const dx = Math.max(r.left - lastX, 0, lastX - r.right);
+      const dy = Math.max(r.top - lastY, 0, lastY - r.bottom);
+      const dist = Math.hypot(dx, dy);
+
+      // falloff over ~340px → glow 1 (inside) ramping to 0 (far)
+      const FALLOFF = 340;
+      const glow = Math.max(0, 1 - dist / FALLOFF);
+      cta.style.setProperty('--glow', glow.toFixed(3));
+    };
+
+    const onMove = (e: PointerEvent) => {
+      lastX = e.clientX;
+      lastY = e.clientY;
+      if (raf == null) raf = requestAnimationFrame(update);
+    };
+
+    const onLeave = () => {
+      lastX = -9999;
+      lastY = -9999;
+      if (raf == null) raf = requestAnimationFrame(update);
+    };
+
+    window.addEventListener('pointermove', onMove, { passive: true });
+    window.addEventListener('pointerleave', onLeave, { passive: true });
+
+    return () => {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerleave', onLeave);
+      if (raf != null) cancelAnimationFrame(raf);
+    };
+  }
+
+  let teardown: Cleanup = initContact();
+  document.addEventListener('astro:before-swap', () => teardown?.());
+  document.addEventListener('astro:page-load', () => { teardown = initContact(); });
+</script>

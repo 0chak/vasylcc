@@ -1,0 +1,526 @@
+---
+import { projects } from '../data/projects';
+
+const count = String(projects.length).padStart(2, '0');
+---
+
+<div class="wrap">
+  <header class="head">
+    <p class="kicker">[ Lavori selezionati ]</p>
+    <h2 class="h-section">
+      // Progetti <span class="count mono">({count})</span>
+    </h2>
+    <p class="head-sub mono">~/lavori — directory listing</p>
+  </header>
+
+  <ol class="grid" role="list">
+    {
+      projects.map((p) => {
+        const isLive = p.status === 'live';
+        const Tag = isLive ? 'a' : 'button';
+        return (
+          <li class="cell">
+            <Tag
+              class:list={['card', { 'is-soon': !isLive, 'is-company': p.isCompany }]}
+              data-nav
+              data-card
+              data-status={p.status}
+              {...(isLive
+                ? { href: p.url, target: '_blank', rel: 'noopener noreferrer' }
+                : { type: 'button', 'aria-disabled': 'true' })}
+            >
+              <span class="spot" aria-hidden="true" />
+              <span class="scan" aria-hidden="true" />
+
+              <span class="card-in">
+                <span class="row-top">
+                  <span class="idx mono" aria-hidden="true">{p.index}</span>
+                  <span class="badges">
+                    {p.isCompany && (
+                      <span class="marker mono">★ LA MIA AZIENDA</span>
+                    )}
+                    {isLive ? (
+                      <span class="badge badge-live mono">● LIVE</span>
+                    ) : (
+                      <span class="badge badge-soon mono">◇ IN ARRIVO</span>
+                    )}
+                  </span>
+                </span>
+
+                <span class="row-name">
+                  <span class="name mono">{p.name}</span>
+                  <span class="arrow mono" aria-hidden="true">
+                    {isLive ? '↗' : '◴'}
+                  </span>
+                </span>
+
+                <span class="meta mono">
+                  <span class="meta-tag">{p.tag}</span>
+                  <span class="dot" aria-hidden="true">·</span>
+                  <span class="meta-year">{p.year}</span>
+                </span>
+
+                <span class="desc">{p.description}</span>
+
+                <span class="role mono">
+                  <span class="role-label">RUOLO</span>
+                  <span class="role-arrow" aria-hidden="true">»</span>
+                  <span class="role-val">{p.role}</span>
+                </span>
+
+                <span class="stack" aria-label="Stack tecnologico">
+                  {p.stack.map((s) => (
+                    <span class="chip mono">[ {s} ]</span>
+                  ))}
+                </span>
+
+                {!isLive && (
+                  <span class="soon-note mono" data-soon-note hidden>
+                    ⧗ Progetto in costruzione — link presto disponibile
+                    <span class="blink">_</span>
+                  </span>
+                )}
+              </span>
+            </Tag>
+          </li>
+        );
+      })
+    }
+  </ol>
+</div>
+
+<style>
+  .head {
+    margin-bottom: clamp(2rem, 5vw, 3.5rem);
+  }
+
+  .h-section {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6ch;
+    flex-wrap: wrap;
+  }
+
+  .count {
+    color: var(--g1);
+    font-size: 0.6em;
+    opacity: 0.85;
+  }
+
+  .head-sub {
+    margin: 0.85rem 0 0;
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--mute);
+  }
+  .head-sub::before {
+    content: '> ';
+    color: var(--g-dim);
+  }
+
+  .grid {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: clamp(1rem, 2.4vw, 1.6rem);
+  }
+
+  @media (min-width: 820px) {
+    .grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  .cell {
+    display: flex;
+    min-width: 0;
+  }
+
+  /* ---- CARD ---- */
+  .card {
+    --cx: 50%;
+    --cy: 0%;
+    --tiltx: 0deg;
+    --tilty: 0deg;
+    position: relative;
+    isolation: isolate;
+    display: block;
+    width: 100%;
+    text-align: left;
+    text-decoration: none;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+    appearance: none;
+    background: linear-gradient(180deg, var(--b2), var(--b3));
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: clamp(1.25rem, 2.6vw, 1.9rem);
+    overflow: hidden;
+    transform: perspective(900px) rotateX(var(--tiltx)) rotateY(var(--tilty));
+    transform-style: preserve-3d;
+    transition:
+      border-color 0.35s ease,
+      box-shadow 0.4s ease,
+      transform 0.25s ease;
+    will-change: transform;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(140deg, var(--g2), transparent 45%);
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+    z-index: 3;
+  }
+
+  /* cursor-following spotlight */
+  .spot {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    background: radial-gradient(
+      340px circle at var(--cx) var(--cy),
+      color-mix(in srgb, var(--g1) 16%, transparent),
+      transparent 60%
+    );
+  }
+
+  /* scanline sweep */
+  .scan {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 2px;
+    z-index: 2;
+    pointer-events: none;
+    opacity: 0;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      var(--g2),
+      transparent
+    );
+    box-shadow: 0 0 12px var(--g1);
+    transform: translateY(0);
+  }
+
+  .card-in {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+  }
+
+  /* hover + keyboard-selected share styling */
+  .card:hover,
+  .card:focus-visible,
+  .card.is-active {
+    border-color: var(--g2);
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--g2) 40%, transparent),
+      0 18px 50px -24px color-mix(in srgb, var(--g1) 55%, transparent);
+  }
+  .card:hover::before,
+  .card:focus-visible::before,
+  .card.is-active::before {
+    opacity: 1;
+  }
+  .card:hover .spot,
+  .card.is-active .spot {
+    opacity: 1;
+  }
+  .card:focus-visible {
+    outline: none;
+  }
+
+  /* ---- ROW: index + badges ---- */
+  .row-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .idx {
+    font-size: clamp(2.6rem, 7vw, 3.6rem);
+    font-weight: 700;
+    line-height: 0.85;
+    letter-spacing: -0.03em;
+    color: var(--line-strong);
+    transition: color 0.35s ease, text-shadow 0.35s ease;
+    -webkit-text-stroke: 1px var(--line-strong);
+  }
+  .card:hover .idx,
+  .card:focus-visible .idx,
+  .card.is-active .idx {
+    color: var(--g1);
+    -webkit-text-stroke: 1px var(--g2);
+    text-shadow: 0 0 22px color-mix(in srgb, var(--g1) 45%, transparent);
+  }
+
+  .badges {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.45rem;
+    flex-shrink: 0;
+  }
+
+  .marker {
+    font-size: 0.58rem;
+    letter-spacing: 0.16em;
+    color: var(--b1);
+    color: var(--fg-soft);
+    border: 1px dashed var(--line-strong);
+    border-radius: 2px;
+    padding: 0.25em 0.6em;
+    opacity: 0.85;
+  }
+
+  .badge {
+    font-size: 0.64rem;
+    letter-spacing: 0.14em;
+    padding: 0.3em 0.7em;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    white-space: nowrap;
+  }
+  .badge-live {
+    color: var(--g1);
+    border-color: color-mix(in srgb, var(--g2) 45%, transparent);
+    background: color-mix(in srgb, var(--g1) 10%, transparent);
+  }
+  .badge-soon {
+    color: #ffcf6b;
+    border-color: color-mix(in srgb, #ffcf6b 40%, transparent);
+    background: color-mix(in srgb, #ffcf6b 9%, transparent);
+    animation: soonPulse 2.4s ease-in-out infinite;
+  }
+
+  @keyframes soonPulse {
+    0%, 100% { opacity: 0.6; box-shadow: 0 0 0 0 transparent; }
+    50% {
+      opacity: 1;
+      box-shadow: 0 0 14px -2px color-mix(in srgb, #ffcf6b 60%, transparent);
+    }
+  }
+
+  /* ---- NAME ---- */
+  .row-name {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-top: -0.2rem;
+  }
+  .name {
+    font-size: clamp(1.5rem, 4.2vw, 2.1rem);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--fg);
+  }
+  .arrow {
+    font-size: 1.5rem;
+    color: var(--g2);
+    opacity: 0;
+    transform: translate(-6px, 6px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    flex-shrink: 0;
+  }
+  .card:hover .arrow,
+  .card:focus-visible .arrow,
+  .card.is-active .arrow {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
+  .is-soon .arrow {
+    color: #ffcf6b;
+    animation: spinSlow 6s linear infinite;
+  }
+  @keyframes spinSlow {
+    to { transform: rotate(360deg); }
+  }
+
+  /* ---- META ---- */
+  .meta {
+    display: flex;
+    align-items: center;
+    gap: 0.6ch;
+    flex-wrap: wrap;
+    font-size: 0.74rem;
+    letter-spacing: 0.04em;
+    color: var(--g-dim);
+  }
+  .dot { color: var(--mute); }
+  .meta-year { color: var(--mute); }
+
+  .desc {
+    font-size: 0.875rem;
+    line-height: 1.6;
+    color: var(--fg-soft);
+    max-width: 52ch;
+  }
+
+  /* ---- ROLE ---- */
+  .role {
+    display: flex;
+    align-items: center;
+    gap: 0.55ch;
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+  }
+  .role-label {
+    color: var(--mute);
+    letter-spacing: 0.16em;
+  }
+  .role-arrow { color: var(--g2); }
+  .role-val { color: var(--fg-soft); }
+
+  /* ---- STACK CHIPS ---- */
+  .stack {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 0.15rem;
+  }
+  .chip {
+    font-size: 0.68rem;
+    letter-spacing: 0.02em;
+    color: var(--g-dim);
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    padding: 0.28em 0.55em;
+    background: color-mix(in srgb, var(--b1) 14%, transparent);
+    transition: border-color 0.3s ease, color 0.3s ease;
+  }
+  .card:hover .chip,
+  .card:focus-visible .chip,
+  .card.is-active .chip {
+    border-color: color-mix(in srgb, var(--g2) 35%, transparent);
+    color: var(--fg-soft);
+  }
+
+  /* ---- SOON NOTE ---- */
+  .soon-note {
+    font-size: 0.7rem;
+    letter-spacing: 0.04em;
+    color: #ffcf6b;
+    margin-top: 0.1rem;
+  }
+  .soon-note[hidden] { display: none; }
+
+  .is-soon {
+    cursor: default;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .card,
+    .arrow,
+    .idx,
+    .spot,
+    .badge-soon {
+      transition: none !important;
+      animation: none !important;
+    }
+    .card {
+      transform: none !important;
+    }
+    .scan { display: none; }
+  }
+</style>
+
+<script>
+  type CardEl = HTMLElement & {
+    _raf?: number;
+    _cleanup?: () => void;
+  };
+
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const cards = Array.from(
+    document.querySelectorAll<HTMLElement>('[data-card]')
+  ) as CardEl[];
+
+  cards.forEach((card) => {
+    // Soon cards: show inline note instead of navigating
+    if (card.dataset.status === 'soon') {
+      card.addEventListener('click', (e) => {
+        e.preventDefault();
+        const note = card.querySelector<HTMLElement>('[data-soon-note]');
+        if (note) note.hidden = false;
+      });
+    }
+
+    if (reduced) return;
+
+    let targetX = 50;
+    let targetY = 0;
+    let targetTiltX = 0;
+    let targetTiltY = 0;
+
+    const apply = () => {
+      card.style.setProperty('--cx', targetX + '%');
+      card.style.setProperty('--cy', targetY + '%');
+      card.style.setProperty('--tiltx', targetTiltX.toFixed(2) + 'deg');
+      card.style.setProperty('--tilty', targetTiltY.toFixed(2) + 'deg');
+      card._raf = undefined;
+    };
+
+    const schedule = () => {
+      if (card._raf == null) card._raf = requestAnimationFrame(apply);
+    };
+
+    const onMove = (e: PointerEvent) => {
+      const r = card.getBoundingClientRect();
+      const px = (e.clientX - r.left) / r.width;
+      const py = (e.clientY - r.top) / r.height;
+      targetX = px * 100;
+      targetY = py * 100;
+      // subtle tilt toward cursor (max ~4deg)
+      targetTiltY = (px - 0.5) * 8;
+      targetTiltX = (0.5 - py) * 6;
+      schedule();
+    };
+
+    const onLeave = () => {
+      targetX = 50;
+      targetY = 0;
+      targetTiltX = 0;
+      targetTiltY = 0;
+      schedule();
+    };
+
+    card.addEventListener('pointermove', onMove, { passive: true });
+    card.addEventListener('pointerleave', onLeave, { passive: true });
+
+    card._cleanup = () => {
+      card.removeEventListener('pointermove', onMove);
+      card.removeEventListener('pointerleave', onLeave);
+      if (card._raf != null) cancelAnimationFrame(card._raf);
+    };
+  });
+
+  // cleanup on Astro view transitions / navigation
+  document.addEventListener('astro:before-swap', () => {
+    cards.forEach((c) => c._cleanup?.());
+  }, { once: true });
+</script>

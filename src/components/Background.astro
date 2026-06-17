@@ -1,0 +1,410 @@
+---
+// Background.astro — animated ASCII-core / brutalist field reacting to the cursor.
+// Deep-space terminal: green phosphor on dark blue. Fixed, behind all content.
+// Self-contained: owns its <canvas>, RAF loop, resize + pointer listeners.
+---
+
+<canvas id="bg-ascii" aria-hidden="true"></canvas>
+
+<style>
+  #bg-ascii {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    pointer-events: none;
+    /* Transparent: the body's radial/gradient bg shows through behind glyphs. */
+    background: transparent;
+    /* Keep glyphs from ever hurting legibility of content stacked above. */
+    opacity: 0.9;
+    will-change: transform;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    #bg-ascii { opacity: 0.55; }
+  }
+</style>
+
+<script>
+  // ──────────────────────────────────────────────────────────────────────────
+  // ASCII phosphor field. Each cell holds a glyph + a brightness "charge".
+  // The cursor injects a moving spotlight + ripple that brightens and scrambles
+  // nearby glyphs; everything decays back to a quiet ambient terminal texture.
+  // ──────────────────────────────────────────────────────────────────────────
+
+  type RGB = readonly [number, number, number];
+
+  const GLYPHS =
+    '. , : ; / \\ | - _ = + * < > [ ] ( ) { } ░ ▒ ▓ █ ◦ • ° 0 1 7 8'
+      .split(' ')
+      .filter(Boolean);
+
+  // Denser glyphs used when a cell is "hot" (decoding near the cursor).
+  const HOT_GLYPHS = '▒▓█=+*#%@<>{}/\\01'.split('');
+
+  // Phosphor palette, sampled by charge.
+  const COL_DIM: RGB = [14, 60, 107]; //  --b1  faint blue
+  const COL_MID: RGB = [10, 122, 68]; //  --g-dim
+  const COL_HOT: RGB = [2, 247, 125]; //  --g2
+  const COL_PEAK: RGB = [14, 219, 113]; // --g1
+
+  const REDUCED =
+    typeof matchMedia === 'function' &&
+    matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const canvas = document.getElementById('bg-ascii') as HTMLCanvasElement | null;
+  if (!canvas) {
+    // Nothing to draw on — bail silently. (TS strict null guard.)
+  } else {
+    const ctx = canvas.getContext('2d', { alpha: true });
+    if (ctx) {
+      run(canvas, ctx);
+    }
+  }
+
+  function lerp(a: number, b: number, t: number): number {
+    return a + (b - a) * t;
+  }
+
+  function mix(c1: RGB, c2: RGB, t: number): RGB {
+    return [
+      lerp(c1[0], c2[0], t),
+      lerp(c1[1], c2[1], t),
+      lerp(c1[2], c2[2], t),
+    ];
+  }
+
+  function rampColor(charge: number): RGB {
+    // 0 → dim blue, 0.5 → green-dim, 0.8 → green, 1 → bright green
+    if (charge < 0.5) return mix(COL_DIM, COL_MID, charge / 0.5);
+    if (charge < 0.8) return mix(COL_MID, COL_HOT, (charge - 0.5) / 0.3);
+    return mix(COL_HOT, COL_PEAK, (charge - 0.8) / 0.2);
+  }
+
+  function run(cv: HTMLCanvasElement, ctx: CanvasRenderingContext2D): void {
+    let dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+    // Cell geometry (CSS px). Larger on coarse pointers (mobile) → cheaper.
+    const coarse =
+      typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches;
+    let cellW = coarse ? 18 : 13;
+    let cellH = coarse ? 22 : 17;
+    const fontPx = coarse ? 16 : 13;
+
+    let cols = 0;
+    let rows = 0;
+    let cssW = 0;
+    let cssH = 0;
+
+    // Per-cell state, flat arrays for cache friendliness.
+    let charge: Float32Array = new Float32Array(0); // 0..1 brightness
+    let glyphIdx: Int16Array = new Int16Array(0); // index into GLYPHS
+    let hot: Float32Array = new Float32Array(0); // scramble energy 0..1
+    let base: Float32Array = new Float32Array(0); // ambient baseline per cell
+
+    // Pointer (CSS px) with smoothed follow + velocity.
+    let pxRaw = -9999;
+    let pyRaw = -9999;
+    let px = -9999;
+    let py = -9999;
+    let pvel = 0; // smoothed speed 0..~1
+    let active = false; // pointer has been seen
+    let down = false; // pointer button held — spotlight only shows while true
+
+    // Occasional glitch: a horizontal band of rows is briefly displaced + lit.
+    // Only triggers while the page is scrolling.
+    let glitchUntil = 0;
+    let glitchRow = 0;
+    let glitchH = 0;
+    let glitchDx = 0;
+    let scrollUntil = 0; // ts up to which we consider the page "scrolling"
+    window.addEventListener(
+      'scroll',
+      () => {
+        scrollUntil = performance.now() + 160;
+      },
+      { passive: true }
+    );
+
+    function rand(n: number): number {
+      return (Math.random() * n) | 0;
+    }
+
+    function allocate(): void {
+      cols = Math.max(1, Math.ceil(cssW / cellW));
+      rows = Math.max(1, Math.ceil(cssH / cellH));
+      const n = cols * rows;
+      charge = new Float32Array(n);
+      glyphIdx = new Int16Array(n);
+      hot = new Float32Array(n);
+      base = new Float32Array(n);
+      for (let i = 0; i < n; i++) {
+        glyphIdx[i] = rand(GLYPHS.length);
+        // Sparse ambient baseline so most of the field is near-dark, with a
+        // scattering of slightly-lit cells for that "live terminal" texture.
+        base[i] = Math.random() < 0.14 ? 0.1 + Math.random() * 0.16 : 0.02;
+        charge[i] = base[i];
+      }
+    }
+
+    function resize(): void {
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      cssW = window.innerWidth;
+      cssH = window.innerHeight;
+      cv.width = Math.max(1, Math.round(cssW * dpr));
+      cv.height = Math.max(1, Math.round(cssH * dpr));
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.textBaseline = 'top';
+      ctx.font = `${fontPx}px var(--mono, ui-monospace, monospace)`;
+      allocate();
+      if (REDUCED) drawStatic();
+    }
+
+    // ── Reduced motion: one static, quiet grid. No loop, no scramble. ──────────
+    function drawStatic(): void {
+      ctx.clearRect(0, 0, cssW, cssH);
+      ctx.font = `${fontPx}px var(--mono, ui-monospace, monospace)`;
+      ctx.textBaseline = 'top';
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const i = r * cols + c;
+          const ch = charge[i];
+          if (ch < 0.04) continue;
+          const col = rampColor(ch);
+          ctx.fillStyle = `rgba(${col[0] | 0},${col[1] | 0},${col[2] | 0},${(
+            0.18 +
+            ch * 0.5
+          ).toFixed(3)})`;
+          ctx.fillText(GLYPHS[glyphIdx[i]], c * cellW, r * cellH);
+        }
+      }
+    }
+
+    // ── Pointer tracking (own listener; independent of global --mx/--my). ──────
+    function onMove(x: number, y: number): void {
+      pxRaw = x;
+      pyRaw = y;
+      if (!active) {
+        px = x;
+        py = y;
+        active = true;
+      }
+    }
+    window.addEventListener(
+      'pointermove',
+      (e) => onMove(e.clientX, e.clientY),
+      { passive: true }
+    );
+    window.addEventListener(
+      'touchmove',
+      (e) => {
+        const t = e.touches[0];
+        if (t) onMove(t.clientX, t.clientY);
+      },
+      { passive: true }
+    );
+    window.addEventListener('pointerleave', () => {
+      // Let the spotlight glide off-screen rather than snap away.
+      pxRaw = -9999;
+      pyRaw = -9999;
+    });
+
+    // Spotlight is gated on the pointer button: it only appears while held.
+    function press(x: number, y: number): void {
+      // Snap to the press point so the spotlight ignites where you click.
+      pxRaw = px = x;
+      pyRaw = py = y;
+      pvel = 0;
+      active = true;
+      down = true;
+    }
+    function release(): void {
+      down = false;
+    }
+    window.addEventListener(
+      'pointerdown',
+      (e) => press(e.clientX, e.clientY),
+      { passive: true }
+    );
+    window.addEventListener('pointerup', release, { passive: true });
+    window.addEventListener('pointercancel', release, { passive: true });
+    window.addEventListener('blur', release);
+
+    // ── Visibility: pause the loop entirely when the tab is hidden. ────────────
+    let raf = 0;
+    let running = false;
+    let prevTs = 0;
+
+    function start(): void {
+      if (running || REDUCED) return;
+      running = true;
+      prevTs = performance.now();
+      raf = requestAnimationFrame(frame);
+    }
+    function stop(): void {
+      running = false;
+      if (raf) cancelAnimationFrame(raf);
+      raf = 0;
+    }
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) stop();
+      else start();
+    });
+
+    // Cursor for the round-robin ambient scan (only touch a slice per frame).
+    let scan = 0;
+
+    function frame(ts: number): void {
+      if (!running) return;
+      const dtMs = Math.min(64, ts - prevTs);
+      prevTs = ts;
+      const dt = dtMs / 16.6667; // ~frames elapsed
+      const time = ts * 0.001;
+
+      // Smooth the pointer toward its raw target; derive velocity from the step.
+      if (active) {
+        const tx = pxRaw < -9000 ? px : pxRaw;
+        const ty = pyRaw < -9000 ? py : pyRaw;
+        const ease = 0.18;
+        const ndx = (tx - px) * ease;
+        const ndy = (ty - py) * ease;
+        px += ndx;
+        py += ndy;
+        const speed = Math.hypot(ndx, ndy);
+        pvel += (Math.min(1, speed / 14) - pvel) * 0.2;
+      } else {
+        pvel *= 0.9;
+      }
+
+      // Spotlight radius (CSS px) — breathes a little, grows with velocity.
+      const radius =
+        (coarse ? 130 : 175) + Math.sin(time * 0.9) * 18 + pvel * 70;
+      const r2 = radius * radius;
+
+      ctx.clearRect(0, 0, cssW, cssH);
+      ctx.font = `${fontPx}px var(--mono, ui-monospace, monospace)`;
+      ctx.textBaseline = 'top';
+
+      // Decay factors per frame-step.
+      const decay = Math.pow(0.92, dt);
+      const hotDecay = Math.pow(0.86, dt);
+
+      // Round-robin ambient activity: only a slice of cells gets random flips
+      // per frame, keeping per-frame cost bounded regardless of grid size.
+      const total = cols * rows;
+      const sliceSize = Math.min(total, Math.max(24, (total / 48) | 0));
+
+      // Kick off brief glitch bands — only while the page is scrolling.
+      const scrolling = ts < scrollUntil;
+      if (scrolling && ts > glitchUntil && Math.random() < 0.12) {
+        glitchUntil = ts + 60 + Math.random() * 110;
+        glitchRow = rand(rows);
+        glitchH = 1 + rand(3);
+        glitchDx = (Math.random() * 2 - 1) * 7;
+      }
+      const glitching = ts < glitchUntil;
+
+      for (let r = 0; r < rows; r++) {
+        const cy = r * cellH;
+        const cyc = cy + cellH * 0.5;
+        const rowGlitch =
+          glitching && r >= glitchRow && r < glitchRow + glitchH;
+        for (let c = 0; c < cols; c++) {
+          const i = r * cols + c;
+          const cx = c * cellW;
+          const cxc = cx + cellW * 0.5;
+
+          // Decay toward ambient baseline.
+          let ch = charge[i];
+          ch = base[i] + (ch - base[i]) * decay;
+          let h = hot[i] * hotDecay;
+
+          // Spotlight contribution — only while the pointer button is held.
+          if (down && px > -9000) {
+            const dx = cxc - px;
+            const dy = cyc - py;
+            const d2 = dx * dx + dy * dy;
+            if (d2 < r2) {
+              const f = 1 - d2 / r2; // 0..1 falloff
+              const soft = f * f; // tighter core
+              ch = Math.max(ch, 0.3 + soft * (0.7 + pvel * 0.3));
+              h = Math.max(h, soft * (0.55 + pvel * 0.45));
+            }
+          }
+
+          // Glitch band: lift the row so it flashes faintly over dark areas.
+          if (rowGlitch) {
+            ch = Math.max(ch, 0.16 + Math.random() * 0.16);
+            h = Math.max(h, 0.18);
+          }
+
+          if (ch > 1) ch = 1;
+          charge[i] = ch;
+          hot[i] = h;
+
+          // Scramble: hot cells "decode", cycling through dense glyphs.
+          let gi = glyphIdx[i];
+          if (h > 0.18 && Math.random() < h * 0.55) {
+            // Pull from HOT_GLYPHS, mapped back into the GLYPHS index space by
+            // searching once; cheap enough at this rate. Fallback: random.
+            const hg = HOT_GLYPHS[rand(HOT_GLYPHS.length)];
+            const found = GLYPHS.indexOf(hg);
+            gi = found >= 0 ? found : rand(GLYPHS.length);
+            glyphIdx[i] = gi;
+          }
+
+          if (ch < 0.035) continue;
+
+          // Draw. Brightness drives both color ramp and alpha; a faint flicker
+          // keeps lit cells alive. Hot cells get a subtle horizontal jitter.
+          const flicker = 0.94 + Math.sin(time * 4 + i * 1.7) * 0.05 * h;
+          let col = rampColor(ch);
+          const alpha = Math.min(0.95, (0.12 + ch * 0.72) * flicker);
+          // Chromatic tint on glitch rows — occasional cyan/magenta channel shift.
+          if (rowGlitch && Math.random() < 0.22) {
+            col = (Math.random() < 0.5 ? [80, 220, 255] : [255, 60, 140]) as RGB;
+          }
+          ctx.fillStyle = `rgba(${col[0] | 0},${col[1] | 0},${col[2] | 0},${alpha.toFixed(
+            3
+          )})`;
+          const jx =
+            (rowGlitch ? glitchDx : 0) + (h > 0.4 ? (Math.random() - 0.5) * 2 : 0);
+          ctx.fillText(GLYPHS[gi], cx + jx, cy);
+        }
+      }
+
+      // Ambient drift: flip a bounded slice of random glyphs / re-seed sparks.
+      // Kept gentle — low flip + spark rates so the idle field is calm.
+      for (let s = 0; s < sliceSize; s++) {
+        const i = (scan + s * 37) % total;
+        if (Math.random() < 0.018) glyphIdx[i] = rand(GLYPHS.length);
+        // Occasional faint spark to keep the dark field barely shimmering.
+        if (charge[i] <= base[i] + 0.001 && Math.random() < 0.005) {
+          charge[i] = Math.min(0.32, charge[i] + 0.1 + Math.random() * 0.1);
+        }
+      }
+      scan = (scan + sliceSize) % total;
+
+      raf = requestAnimationFrame(frame);
+    }
+
+    // ── Boot ───────────────────────────────────────────────────────────────
+    let resizeTimer = 0;
+    window.addEventListener('resize', () => {
+      window.clearTimeout(resizeTimer);
+      resizeTimer = window.setTimeout(resize, 120);
+    });
+    if ('ResizeObserver' in window) {
+      const ro = new ResizeObserver(() => {
+        window.clearTimeout(resizeTimer);
+        resizeTimer = window.setTimeout(resize, 120);
+      });
+      ro.observe(document.documentElement);
+    }
+
+    resize();
+    if (!REDUCED && !document.hidden) start();
+  }
+</script>
