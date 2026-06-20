@@ -1,8 +1,8 @@
 export const site = {
   name: 'Vasyl Halushchak',
   handle: 'vasyl.cc',
-  role: 'Full Stack Web Developer',
-  roleLong: 'Sviluppatore Full Stack · Software Engineer',
+  role: 'Senior Full-Stack Engineer',
+  roleLong: 'Senior Full-Stack Engineer · SaaS Architect',
   email: 'info@vasyl.pw',
   linkedin: 'https://www.linkedin.com/in/vasyl-halushchak-b8113631/',
   location: 'Isernia · Italia',

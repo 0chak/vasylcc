@@ -47,10 +47,10 @@ export const projects: Project[] = [
     url: 'https://negestionale.it',
     status: 'live',
     year: '2022 →',
-    tag: 'Gestionale ERP/CRM cloud',
+    tag: 'SaaS noleggio & gestione flotte',
     description:
-      'Gestionale cloud per ordini, magazzino, clienti e fatturazione elettronica (SDI). Costruito sullo stack TALL e integrato con corrieri (GLS, BRT, SDA) e servizi di terze parti.',
-    stack: ['Laravel', 'Livewire', 'FilamentPHP', 'Alpine', 'MySQL'],
+      'SaaS multi-tenant per società di noleggio veicoli: gestione flotte e manutenzioni, tracciamento GPS in tempo reale, pricing dinamico, contratti PDF, abbonamenti Stripe e API REST di prenotazione pubblica per web/mobile.',
+    stack: ['Laravel', 'Filament', 'Inertia', 'Stripe', 'MapLibre'],
     role: 'Full Stack · Architetto',
   },
   {
@@ -67,8 +67,21 @@ export const projects: Project[] = [
     role: 'Founder · DevOps',
   },
   {
-    id: 'kivato',
+    id: 'cgs',
     index: '05',
+    name: 'CGS',
+    url: '#cgs',
+    status: 'soon',
+    year: '2022 →',
+    tag: 'Spedizioni multi-corriere',
+    description:
+      'Piattaforma di spedizioni che aggrega GLS, BRT, SDA, DPD, DHL e Amazon: generazione automatica di lettere di vettura/manifest PDF, etichette QR, tracking ed elaborazione dati Excel↔XML.',
+    stack: ['Laravel', 'Filament', 'Guzzle', 'Sentry'],
+    role: 'Full Stack',
+  },
+  {
+    id: 'kivato',
+    index: '06',
     name: 'Kivato',
     url: '#kivato',
     status: 'soon',
